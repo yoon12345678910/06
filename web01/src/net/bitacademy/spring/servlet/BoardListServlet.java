@@ -6,12 +6,16 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import net.bitacademy.spring.vo.Board;
 
 @WebServlet("/board/list.do")
 public class BoardListServlet extends HttpServlet {
@@ -24,15 +28,6 @@ public class BoardListServlet extends HttpServlet {
      resp.setContentType("text/html;charset=UTF-8");
      PrintWriter out = resp.getWriter();
      
-     out.println("<!DOCTYPE html>");
-     out.println("<html>");
-     out.println("<head>");
-     out.println("<meta charset='UTF-8'>");
-     out.println("<title>Insert title here</title>");
-     out.println("</head>");
-     out.println("<body>");
-     
-     
      Connection con = null;
      Statement stmt = null;
      ResultSet rs = null;
@@ -41,37 +36,31 @@ public class BoardListServlet extends HttpServlet {
        Class.forName("com.mysql.jdbc.Driver");
        con = DriverManager.getConnection(
            "jdbc:mysql://localhost:3306/studydb", "study", "study"); 
+       
        stmt = con.createStatement();
        rs = stmt.executeQuery("select bno, title, cre_dt, views"
            + " from board"
            + " order by bno desc");
        
-       out.println("<h1>게시물 목록</h1>");
-       out.println("<a href='form.html'>새 글</a><br>"); 
-       out.println("<table border='1'>");
-       out.println("<tr>");
-       out.println("<td>번호</td>");
-       out.println("<td>제목</td>");
-       out.println("<td>등록일</td>");
-       out.println("<td>조회수</td>");
-       out.println("</tr>");
-       
-       while(rs.next()){
-              out.println("<tr>");
-              out.println("<td>" + rs.getInt("bno") + "</td>");
-              out.println("<td><a href='detail.do?no=" +rs.getInt("bno")
-                  + "'>" + rs.getString("title") + "</a></td>");
-              out.println("<td>" + rs.getString("cre_dt") + "</td>");
-              out.println("<td>" + rs.getInt("views") + "</td>");
-              out.println("</tr>");
+       ArrayList<Board> boards = new ArrayList<Board>();
+       Board board = null;
+       while (rs.next()) {
+         board = new Board();
+         board.setNo(rs.getInt("bno"));
+         board.setTitle(rs.getString("title"));
+         board.setCreateDate(rs.getDate("cre_dt"));
+         board.setViews(rs.getInt("views"));
+         boards.add(board);
        }
-       out.println("</table>");
+       
+       req.setAttribute("list", boards);
+       RequestDispatcher rd = req.getRequestDispatcher("/board/list.jsp");
+       rd.include(req, resp);
        
      }catch(Exception e){
-       out.println("예외 발생!");
-       out.println("<pre>");
-       e.printStackTrace(out);
-       out.println("</pre>");
+       req.setAttribute("error", e);
+       RequestDispatcher rd = req.getRequestDispatcher("/error.jsp");
+       rd.include(req, resp);
      }finally{
        try{rs.close();}catch(Exception ex){}
        try{stmt.close();}catch(Exception ex){}
