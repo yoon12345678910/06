@@ -1,28 +1,18 @@
 package net.bitacademy.spring.dao;
 
-import java.io.InputStream;
 import java.util.List;
 
 import net.bitacademy.spring.vo.Board;
 
-import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.ibatis.session.SqlSessionFactoryBuilder;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
-@Component 
+@Repository
 public class BoardDao {
-  static SqlSessionFactory sqlSessionFactory;
-  static{
-    try{
-      InputStream inputStream = Resources.getResourceAsStream(
-          "net/bitacademy/spring/dao/mybatis-config.xml");
-      sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
-    }catch(Exception e){
-      e.printStackTrace();
-    }    
-  }
+  @Autowired
+   SqlSessionFactory sqlSessionFactory;
   
   public List<Board> selectList() throws Exception{
     SqlSession sqlSession = sqlSessionFactory.openSession();
